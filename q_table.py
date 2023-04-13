@@ -55,3 +55,16 @@ class Q_DICT:
         else:
             current_val = None
         return current_val
+    
+    def get_max_action_pair(self, cue_state, target_state):
+        max_q = 0.00
+        best_angle = np.random.choice(self.angles)
+        best_power = np.random.choice(self.powers)
+        for angle in self.angles:
+            for power in self.powers:
+                q_val = self.get_q_val(cue_state, target_state, angle, power)
+                if q_val is not None and q_val > max_q:
+                    max_q = q_val
+                    best_angle = angle
+                    best_power = power
+        return best_angle, best_power, max_q

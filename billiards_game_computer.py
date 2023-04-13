@@ -66,15 +66,13 @@ class Cue():
     )
 
 class BILLIARDS_GAME_COMPUTER:
-  def __init__(self, cue_ball_states, target_ball_states, display = True, ):
+  def __init__(self, display = True):
     self.run = True
     self.reward = 0.0
     self.display = display
     self.SCREEN_WIDTH = 1200
     self.SCREEN_HEIGHT = 678
     self.BOTTOM_PANEL = 50
-    self.cue_ball_states = cue_ball_states
-    self.target_ball_states = target_ball_states
     
     #game window
     if self.display == True:
@@ -226,7 +224,7 @@ class BILLIARDS_GAME_COMPUTER:
       self.power_bar = pygame.Surface((10, 20))
       self.power_bar.fill(self.RED)
 
-  def shoot(self, input_angle, input_power):
+  def shoot(self, input_angle, input_power, cue_state, target_state):
     self.taking_shot = False
     self.reward = 0
     has_velocity = True
@@ -235,8 +233,8 @@ class BILLIARDS_GAME_COMPUTER:
     #check if the potted ball was the cue ball
     #self.balls[-1].body.position = [int(self.balls[-1].body.position[0]), int(self.balls[-1].body.position[1])]
     #self.balls[-2].body.position = [int(self.balls[-2].body.position[0]), int(self.balls[-2].body.position[1])]
-    self.balls[-1].body.position = self.cue_ball_states[np.random.randint(len(self.cue_ball_states))]
-    self.balls[-2].body.position = self.target_ball_states[np.random.randint(len(self.target_ball_states))]
+    self.balls[-1].body.position = cue_state
+    self.balls[-2].body.position = target_state
     target_ball_position_og = self.balls[-2].body.position
     cue_ball_position_og = self.balls[-1].body.position
 
@@ -317,4 +315,4 @@ class BILLIARDS_GAME_COMPUTER:
         #self.space.debug_draw(self.draw_options)
         pygame.display.update()
       
-    return cue_ball_position_og, target_ball_position_og, self.reward
+    return self.reward

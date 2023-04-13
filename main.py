@@ -13,9 +13,9 @@ from billiards_game_computer import BILLIARDS_GAME_COMPUTER
 from billiards_game_human import BILLIARDS_GAME_HUMAN
 
 def Q_learning():
-    test = False
-    display = False
-    num_epochs=10000
+    test = True
+    display = True
+    num_epochs=20000
     num_cue_ball_states = 10
     num_target_ball_states = 10
     q_learning = Q_LEARNING(test, display, num_epochs, num_cue_ball_states, num_target_ball_states)
