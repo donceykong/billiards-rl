@@ -41,7 +41,7 @@ class Q_LEARNING:
                       f"    -> size: {len(self.Q.Q_dict_list[i])}")
                 
     def begin(self):
-        #self.load_Q_tables()
+        self.load_Q_tables()
         if self.test:
             print("\n**Testing Q-Learning (only exploiting best actions)**\n")
             for epoch in tqdm(range(self.num_epochs)):
@@ -80,7 +80,6 @@ class Q_LEARNING:
         '''choose theta and power with eps-greedy approach'''
         if self.test:
             theta, power, max_q = self.Q.get_max_action_pair(cue_s, obj_s_list)
-            print(f"MAXQ: {max_q}")
         else:
             if np.random.rand() < self.eps:
                 theta, power, max_q = self.Q.get_max_action_pair(cue_s, obj_s_list)
@@ -97,7 +96,7 @@ class Q_LEARNING:
         Q_current = self.Q.get_q_val(cue_s, obj_s_list, theta, power)
         _, _, max_Qp    = self.Q.get_max_action_pair(cue_sp, obj_sp_list)
         Q_new     = self.alpha*(reward + self.gamma*max_Qp - Q_current)
-        print(f"Q_current: {Q_current}, Max_Qp: {max_Qp}, Q_new: {Q_new}")
+        #print(f"Q_current: {Q_current}, Max_Qp: {max_Qp}, Q_new: {Q_new}")
         if Q_new > 0:
             self.Q.update_q_dict(cue_s, obj_s_list, theta, power, Q_new)
 

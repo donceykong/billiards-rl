@@ -94,8 +94,6 @@ class Q_DICT:
         return current_val
     
     def get_max_action_pair(self, cue_s, obj_s_list):
-        print(len(obj_s_list))
-        print(self.Q_dict_list[len(obj_s_list)])
         max_q      = 0.00
         best_angle = np.random.choice(self.thetas)
         best_power = np.random.choice(self.powers)
@@ -105,11 +103,7 @@ class Q_DICT:
                 if q_val > max_q:
                     max_q      = q_val
                     best_angle = theta
-                    best_power = power
-        
-        #SA_string = self.convert_to_hexstring(cue_s, obj_s_list, best_angle, best_power)
-        #if SA_string in self.Q_dict_list[len(obj_s_list)] and max_q == 0.00:
-        #    self.get_max_action_pair(cue_s, obj_s_list)                   
+                    best_power = power                  
 
         return best_angle, best_power, max_q
 
