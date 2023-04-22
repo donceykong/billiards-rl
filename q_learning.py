@@ -73,7 +73,7 @@ class Q_LEARNING:
             if cue_sp != [0, 0]:
                 cue_s = cue_sp
             else:
-                print ("WTF")
+                print ("Pocketed Cue Ball")
                 # TODO: Need to add something to add cue to a random spot as long as not colliding with others
     
     def choose_actions(self, cue_s, obj_s_list):
