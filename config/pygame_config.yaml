@@ -1,0 +1,7 @@
+# Config format schema number
+format_version: 1
+
+#############################
+pygame_params:
+    window_width: []
+    window_height: []   
