@@ -45,7 +45,7 @@ class Q_LEARNING:
                       f"    -> size: {len(self.Q.Q_dict_list[i])}")
                 
     def begin(self):
-        #self.load_Q_tables()
+        self.load_Q_tables()
         if self.test:
             print("\n**Testing Q-Learning (only exploiting best actions)**\n")
             for epoch in tqdm(range(self.num_epochs)):
