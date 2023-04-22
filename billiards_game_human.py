@@ -103,7 +103,7 @@ class BILLIARDS_GAME_HUMAN:
     self.dia = 36                 # pixels
     self.pocket_dia = 66          # pixels
     self.active_force = 0
-    self.max_force = 10000
+    self.max_force = 20000
     self.force_direction = 1
     self.game_running = True
     self.cue_ball_potted = False
@@ -111,11 +111,9 @@ class BILLIARDS_GAME_HUMAN:
     self.powering_up = False
     self.potted_balls = []
 
-    '''
     for i in range(1, 17):
       ball_image = pygame.image.load(f"assets/images/ball_{i}.png").convert_alpha()
-      ball_images.append(ball_image)
-    '''
+      self.ball_images.append(ball_image)
     
     #create pool table cushions
     self.cushions = [
@@ -183,22 +181,21 @@ class BILLIARDS_GAME_HUMAN:
     #setup game balls
     self.balls = []
     #potting balls
-    col = 0
-    row = 0
-    pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
-    new_ball = self.create_ball(pos)
-    self.balls.append(new_ball)
+    
+    #col = 0
+    #row = 0
+    #pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
+    #new_ball = self.create_ball(pos)
+    #self.balls.append(new_ball)
 
-    '''
     columns = 5
     rows = 5
     for col in range(columns):
       for row in range(rows):
-        pos = (250 + (col * (dia + 1)), 267 + (row * (dia + 1)) + (col * dia / 2))
-        new_ball = create_ball(dia / 2, pos)
-        balls.append(new_ball)
+        pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
+        new_ball = self.create_ball(pos)
+        self.balls.append(new_ball)
       rows -= 1
-    '''
 
     #cue ball
     pos = (888, self.SCREEN_HEIGHT / 2)
@@ -340,8 +337,8 @@ class BILLIARDS_GAME_HUMAN:
         if (raycast_info != None and type(raycast_info.shape) == pymunk.shapes.Circle):
           ray2_angle = math.degrees(np.arctan2(raycast_info.normal[1],raycast_info.normal[0]))
           ray2_angle_rad = np.deg2rad(ray2_angle)
-          ray2_start = [raycast_info.point[0] - 2*self.dia*1.5*raycast_info.normal[0],
-                        raycast_info.point[1] - 2*self.dia*1.5*raycast_info.normal[1]]
+          ray2_start = [raycast_info.point[0] - self.dia*1.5*raycast_info.normal[0],
+                        raycast_info.point[1] - self.dia*1.5*raycast_info.normal[1]]
           ray2_end = [ray2_start[0] - loa_length*raycast_info.normal[0],
                       ray2_start[1] - loa_length*raycast_info.normal[1]]
           radius = 0.01 # the radius of the object that is raycasted
