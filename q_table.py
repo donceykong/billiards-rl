@@ -51,7 +51,11 @@ class Q_DICT:
         self.Q_dict_pointer = None
         self.Q_dict_list = [{} for _ in range(16)]
         for i, q_dict in enumerate(self.Q_dict_list):
-            setattr(self, f'Q_dict_{i}', q_dict)
+            if i < 10:
+                dict_name = f'Q_dict_0{i}'
+            else:
+                dict_name = f'Q_dict_{i}'
+            setattr(self, dict_name, q_dict)
             
         for _ in range(16):
             SA_string = self.convert_to_hexstring(cue_s_start, obj_s_start, theta_start, power_start)

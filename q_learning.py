@@ -26,7 +26,9 @@ class Q_LEARNING:
         '''Loads all q-dicts from saved pkl files'''
         print("Loading all saved q-dicts:")
         for i in range(16):
-            with open(f'q_dicts/q_dict_{i}.pkl', 'rb') as fp:
+            if i < 10: dict_name = f'q_dicts/q_dict_0{i}.pkl'
+            else: dict_name = f'q_dicts/q_dict_{i}.pkl'
+            with open(dict_name, 'rb') as fp:
                 self.Q.Q_dict_list[i] = pickle.load(fp)
                 print(f"-> Loaded q_dict_{i} from file"
                       f"    -> size: {len(self.Q.Q_dict_list[i])}\n")
@@ -35,13 +37,15 @@ class Q_LEARNING:
         '''Saves all current q-dicts to their appropriate pkl file'''
         print("Saving all q-dicts:\n")
         for i in range(16):
-            with open(f'q_dicts/q_dict_{i}.pkl', 'wb') as bb:
+            if i < 10: dict_name = f'q_dicts/q_dict_0{i}.pkl'
+            else: dict_name = f'q_dicts/q_dict_{i}.pkl'
+            with open(dict_name, 'wb') as bb:
                 pickle.dump(self.Q.Q_dict_list[i], bb)
                 print(f"-> q-dict_{i} saved successfully to file\n"
                       f"    -> size: {len(self.Q.Q_dict_list[i])}")
                 
     def begin(self):
-        self.load_Q_tables()
+        #self.load_Q_tables()
         if self.test:
             print("\n**Testing Q-Learning (only exploiting best actions)**\n")
             for epoch in tqdm(range(self.num_epochs)):
