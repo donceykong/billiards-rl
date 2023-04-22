@@ -89,10 +89,6 @@ class BILLIARDS_GAME_COMPUTER:
       #load images
       self.table_image = pygame.image.load("assets/images/table.png").convert_alpha()
       self.ball_images = []
-      self.ball_image = pygame.image.load(f"assets/images/ball_1.png").convert_alpha()
-      self.cue_ball_image = pygame.image.load(f"assets/images/ball_16.png").convert_alpha()
-      self.ball_images.append(self.ball_image)
-      self.ball_images.append(self.cue_ball_image)
 
     #pymunk space
     self.space = pymunk.Space()
@@ -115,20 +111,18 @@ class BILLIARDS_GAME_COMPUTER:
     self.powering_up = False
     self.potted_balls = []
 
-    '''
     for i in range(1, 17):
       ball_image = pygame.image.load(f"assets/images/ball_{i}.png").convert_alpha()
-      ball_images.append(ball_image)
-    '''
+      self.ball_images.append(ball_image)
     
     #create pool table cushions
     self.cushions = [
-      [(88, 56), (109, 77), (555, 77), (564, 56)],
-      [(621, 56), (630, 77), (1081, 77), (1102, 56)],
-      [(89, 621), (110, 600),(556, 600), (564, 621)],
-      [(622, 621), (630, 600), (1081, 600), (1102, 621)],
-      [(56, 96), (77, 117), (77, 560), (56, 581)],
-      [(1143, 96), (1122, 117), (1122, 560), (1143, 581)]
+      [(88, 56), (109, 77), (555, 77), (564, 56)],        # TOP-LEFT
+      [(621, 56), (630, 77), (1081, 77), (1102, 56)],     # TOP-RIGHT
+      [(88, 621), (109, 600),(555, 600), (564, 621)],     # BOTTOM-LEFT
+      [(621, 621), (630, 600), (1081, 600), (1102, 621)], # BOTTOM-RIGHT
+      [(56, 96), (77, 117), (77, 560), (56, 581)],        # LEFT
+      [(1143, 96), (1122, 117), (1122, 560), (1143, 581)] # RIGHT
     ]
 
     #create six pockets on table
@@ -185,22 +179,19 @@ class BILLIARDS_GAME_COMPUTER:
     #setup game balls
     self.balls = []
     #potting balls
-    col = 0
-    row = 0
-    pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
-    new_ball = self.create_ball(pos)
-    self.balls.append(new_ball)
-
-    '''
+    #col = 0
+    #row = 0
+    #pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
+    #new_ball = self.create_ball(pos)
+    #self.balls.append(new_ball)
     columns = 5
     rows = 5
     for col in range(columns):
       for row in range(rows):
-        pos = (250 + (col * (dia + 1)), 267 + (row * (dia + 1)) + (col * dia / 2))
-        new_ball = create_ball(dia / 2, pos)
-        balls.append(new_ball)
+        pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
+        new_ball = self.create_ball(pos)
+        self.balls.append(new_ball)
       rows -= 1
-    '''
 
     #cue ball
     pos = (888, self.SCREEN_HEIGHT / 2)
@@ -224,20 +215,15 @@ class BILLIARDS_GAME_COMPUTER:
       self.power_bar = pygame.Surface((10, 20))
       self.power_bar.fill(self.RED)
 
-  def shoot(self, input_angle, input_power, cue_state, target_state):
+  def shoot(self, input_angle, input_power, cue_s, obj_s_list):
     self.taking_shot = False
-    self.reward = 0
+    self.reward = 0.00 # init reward
     has_velocity = True
     cue_angle = input_angle
     self.cue.update(-cue_angle)
-    #check if the potted ball was the cue ball
-    #self.balls[-1].body.position = [int(self.balls[-1].body.position[0]), int(self.balls[-1].body.position[1])]
-    #self.balls[-2].body.position = [int(self.balls[-2].body.position[0]), int(self.balls[-2].body.position[1])]
-    self.balls[-1].body.position = cue_state
-    self.balls[-2].body.position = target_state
-    target_ball_position_og = self.balls[-2].body.position
-    cue_ball_position_og = self.balls[-1].body.position
-
+    self.balls[-1].body.position = cue_s
+    for i, ball in enumerate(self.balls[0:len(self.balls)-1]):
+      ball.body.position = obj_s_list[i]
     if self.display == True:
       self.cue.rect.center = self.balls[-1].body.position
       self.cue.draw(self.screen)
@@ -262,20 +248,20 @@ class BILLIARDS_GAME_COMPUTER:
             if i == len(self.balls) - 1:
               self.lives -= 1
               self.cue_ball_potted = True
-              ball.body.position = (-100, -100)
+              #ball.body.position = (-100, -100)
               ball.body.velocity = (0.0, 0.0)
               self.run = False
               self.reward = -100
             else:
-              ball.body.position = (-100, -100)
+              #ball.body.position = (-100, -100)
               ball.body.velocity = (0.0, 0.0)
-              #self.space.remove(ball.body)
-              #self.balls.remove(ball)
-              self.run = False
+              self.space.remove(ball.body)
+              self.balls.remove(ball)
+              #self.run = False
               self.reward = 100
-              #if self.display == True:
-                #self.potted_balls.append(self.ball_images[i])
-                #self.ball_images.pop(i)
+              if self.display == True:
+                self.potted_balls.append(self.ball_images[i])
+                self.ball_images.pop(i)
       #draw pool balls
       if self.display == True:
         for i, ball in enumerate(self.balls):
@@ -311,8 +297,12 @@ class BILLIARDS_GAME_COMPUTER:
       if int(cue_speed) == 0 and int(target_speed) == 0:
         has_velocity = False
         self.reward += -10
+        cue_sp = [int(self.balls[-1].body.position[0]), int(self.balls[-1].body.position[1])]
+        obj_sp_list = []
+        for i, ball in enumerate(self.balls[0:len(self.balls)-1]):
+          obj_sp_list.append([int(ball.body.position[0]), int(ball.body.position[1])])
       if self.display == True:
         #self.space.debug_draw(self.draw_options)
         pygame.display.update()
-      
-    return self.reward
+    
+    return cue_sp, obj_sp_list, self.reward
