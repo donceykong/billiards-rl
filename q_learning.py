@@ -97,8 +97,7 @@ class Q_LEARNING:
         _, _, max_Qp    = self.Q.get_max_action_pair(cue_sp, obj_sp_list)
         Q_new     = self.alpha*(reward + self.gamma*max_Qp - Q_current)
         #print(f"Q_current: {Q_current}, Max_Qp: {max_Qp}, Q_new: {Q_new}")
-        if Q_new > 0:
-            self.Q.update_q_dict(cue_s, obj_s_list, theta, power, Q_new)
+        self.Q.update_q_dict(cue_s, obj_s_list, theta, power, Q_new)
 
     def merge_Qs(dict_a, dict_b):
         dict_c = {**dict_a, **dict_b}
