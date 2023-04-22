@@ -45,7 +45,7 @@ class Q_DICT:
         obj_s_start = []
         theta_start = 0.00
         power_start = 0
-        reward      = -1000000.00
+        reward      = 0.00
         self.powers = [0, 500, 2000, 5000, 8000, 10000, 15000, 20000]
         self.thetas = np.linspace(0, 360, 720)
         self.Q_dict_pointer = None
@@ -94,16 +94,23 @@ class Q_DICT:
         return current_val
     
     def get_max_action_pair(self, cue_s, obj_s_list):
+        print(len(obj_s_list))
+        print(self.Q_dict_list[len(obj_s_list)])
         max_q      = 0.00
         best_angle = np.random.choice(self.thetas)
         best_power = np.random.choice(self.powers)
         for theta in self.thetas:
             for power in self.powers:
                 q_val = self.get_q_val(cue_s, obj_s_list, theta, power)
-                if q_val is not None and q_val > max_q:
+                if q_val > max_q:
                     max_q      = q_val
                     best_angle = theta
                     best_power = power
+        
+        #SA_string = self.convert_to_hexstring(cue_s, obj_s_list, best_angle, best_power)
+        #if SA_string in self.Q_dict_list[len(obj_s_list)] and max_q == 0.00:
+        #    self.get_max_action_pair(cue_s, obj_s_list)                   
+
         return best_angle, best_power, max_q
 
 ################################################################################################

@@ -66,13 +66,14 @@ class Cue():
     )
 
 class BILLIARDS_GAME_COMPUTER:
-  def __init__(self, display = True):
+  def __init__(self, display = True, num_obj_balls=15):
     self.run = True
     self.reward = 0.0
     self.display = display
     self.SCREEN_WIDTH = 1200
     self.SCREEN_HEIGHT = 678
     self.BOTTOM_PANEL = 50
+    self.num_obj_balls = num_obj_balls
     
     #game window
     if self.display == True:
@@ -99,7 +100,7 @@ class BILLIARDS_GAME_COMPUTER:
     self.FPS = 500
 
     #game variables
-    self.lives = 1                # Number of times cue ball can be potted
+    #self.lives = 1               # Number of times cue ball can be potted (unlimited)
     self.dia = 36                 # pixels
     self.pocket_dia = 66          # pixels
     self.active_force = 0
@@ -111,7 +112,7 @@ class BILLIARDS_GAME_COMPUTER:
     self.powering_up = False
     self.potted_balls = []
 
-    for i in range(1, 17):
+    for i in range(16-self.num_obj_balls, 17):
       ball_image = pygame.image.load(f"assets/images/ball_{i}.png").convert_alpha()
       self.ball_images.append(ball_image)
     
@@ -178,19 +179,14 @@ class BILLIARDS_GAME_COMPUTER:
   def setup_game(self):
     #setup game balls
     self.balls = []
-    #potting balls
-    #col = 0
-    #row = 0
-    #pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
-    #new_ball = self.create_ball(pos)
-    #self.balls.append(new_ball)
     columns = 5
     rows = 5
     for col in range(columns):
       for row in range(rows):
-        pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
-        new_ball = self.create_ball(pos)
-        self.balls.append(new_ball)
+        if len(self.balls) < self.num_obj_balls:
+          pos = (250 + (col * (self.dia + 1)), 267 + (row * (self.dia + 1)) + (col * self.dia / 2))
+          new_ball = self.create_ball(pos)
+          self.balls.append(new_ball)
       rows -= 1
 
     #cue ball
@@ -246,19 +242,16 @@ class BILLIARDS_GAME_COMPUTER:
           ball_dist = math.sqrt((ball_x_dist ** 2) + (ball_y_dist ** 2))
           if ball_dist <= self.pocket_dia / 2:
             if i == len(self.balls) - 1:
-              self.lives -= 1
-              self.cue_ball_potted = True
-              #ball.body.position = (-100, -100)
+              #self.lives -= 1
+              ball.body.position = (0, 0)
               ball.body.velocity = (0.0, 0.0)
-              self.run = False
-              self.reward = -100
+              self.reward += -100
             else:
-              #ball.body.position = (-100, -100)
+              ball.body.position = (-100, -100)
               ball.body.velocity = (0.0, 0.0)
               self.space.remove(ball.body)
               self.balls.remove(ball)
-              #self.run = False
-              self.reward = 100
+              self.reward += 100
               if self.display == True:
                 self.potted_balls.append(self.ball_images[i])
                 self.ball_images.pop(i)
@@ -269,32 +262,32 @@ class BILLIARDS_GAME_COMPUTER:
       #draw bottom panel
       if self.display == True:
         pygame.draw.rect(self.screen, self.BG, (0, self.SCREEN_HEIGHT, self.SCREEN_WIDTH, self.BOTTOM_PANEL))
-        self.draw_text("LIVES: " + str(self.lives), self.font, self.WHITE, self.SCREEN_WIDTH - 200, self.SCREEN_HEIGHT + 10)
+        #self.draw_text("LIVES: " + str(self.lives), self.font, self.WHITE, self.SCREEN_WIDTH - 200, self.SCREEN_HEIGHT + 10)
         #draw potted balls in bottom panel
         for i, ball in enumerate(self.potted_balls):
           self.screen.blit(ball, (10 + (i * 50), self.SCREEN_HEIGHT + 10))
       #check for game over
-      if self.lives <= 0:
-        if self.display == True:
-          self.draw_text("GAME OVER", self.large_font, self.WHITE, self.SCREEN_WIDTH / 2 - 160, self.SCREEN_HEIGHT / 2 - 100)
-        self.game_running = False
-        self.run = False
-        self.reward = -100
+      #if self.lives <= 0:
+      #  if self.display == True:
+      #    self.draw_text("GAME OVER", self.large_font, self.WHITE, self.SCREEN_WIDTH / 2 - 160, self.SCREEN_HEIGHT / 2 - 100)
+      #  self.game_running = False
+      #  self.run = False
+      #  self.reward = -100
+      
       #check if all balls are potted
-      if len(self.balls) == 1 and self.lives != 0:
+      if len(self.balls) == 1:# and self.lives != 0:
         if self.display == True:
           self.draw_text("YOU WIN!", self.large_font, self.WHITE, self.SCREEN_WIDTH / 2 - 160, self.SCREEN_HEIGHT / 2 - 100)
         self.game_running = False
         self.run = False
         self.reward = 100
       #check if all the balls have stopped moving
-      cue_vel = self.balls[-1].body.velocity
-      target_vel = self.balls[-2].body.velocity
-      cue_speed = np.sqrt(np.power(cue_vel[0],2) + np.power(cue_vel[1],2))
-      target_speed = np.sqrt(np.power(target_vel[0],2) + np.power(target_vel[1],2))
-      if int(cue_speed) != 0 or int(target_speed) != 0:
+      sum_speed = 0.00
+      for i, ball in enumerate(self.balls):
+        sum_speed += np.linalg.norm(ball.body.velocity[0] - ball.body.velocity[1])
+      if sum_speed != 0:
         has_velocity = True
-      if int(cue_speed) == 0 and int(target_speed) == 0:
+      else:
         has_velocity = False
         self.reward += -10
         cue_sp = [int(self.balls[-1].body.position[0]), int(self.balls[-1].body.position[1])]
@@ -304,5 +297,5 @@ class BILLIARDS_GAME_COMPUTER:
       if self.display == True:
         #self.space.debug_draw(self.draw_options)
         pygame.display.update()
-    
+      
     return cue_sp, obj_sp_list, self.reward
