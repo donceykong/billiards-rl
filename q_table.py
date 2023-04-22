@@ -41,27 +41,28 @@ class Q_DICT:
     '''
     def __init__(self):
         self.mapper = MAPPER()
-        cue_s_start = self.mapper.map_pos_to_1D([95, 95])
+        cue_s_start = [95, 95]
         obj_s_start = []
         theta_start = 0.00
         power_start = 0
-        reward      = 0.00
+        reward      = -1000000.00
+        self.powers = [0, 500, 2000, 5000, 8000, 10000, 15000, 20000]
+        self.thetas = np.linspace(0, 360, 720)
         self.Q_dict_pointer = None
-        self.Q_dict_0   = {}; self.Q_dict_1  = {}; self.Q_dict_2  = {}; self.Q_dict_3  = {}; self.Q_dict_4  = {}; self.Q_dict_5  = {}; 
-        self.Q_dict_6   = {}; self.Q_dict_7  = {}; self.Q_dict_8  = {}; self.Q_dict_9  = {}; self.Q_dict_10 = {}; self.Q_dict_11 = {}; 
-        self.Q_dict_12  = {}; self.Q_dict_13 = {}; self.Q_dict_14 = {}; self.Q_dict_15 = {}; self.Q_dict_16 = {}
-        self.Q_dict_list = [self.Q_dict_0,  self.Q_dict_1,  self.Q_dict_2,  self.Q_dict_3, self.Q_dict_4,  self.Q_dict_5, 
-                            self.Q_dict_6,  self.Q_dict_7,  self.Q_dict_8,  self.Q_dict_9, self.Q_dict_10, self.Q_dict_11,
-                            self.Q_dict_12, self.Q_dict_13, self.Q_dict_14, self.Q_dict_15]
+        self.Q_dict_list = [{} for _ in range(16)]
+        for i, q_dict in enumerate(self.Q_dict_list):
+            setattr(self, f'Q_dict_{i}', q_dict)
+            
         for _ in range(16):
-            SA_string =self.convert_to_hexstring(cue_s_start, obj_s_start, theta_start, power_start)
+            SA_string = self.convert_to_hexstring(cue_s_start, obj_s_start, theta_start, power_start)
             self.Q_dict_pointer                = {SA_string: reward}
             self.Q_dict_list[len(obj_s_start)] = self.Q_dict_pointer
-            obj_s_start.append(self.mapper.map_pos_to_1D([95, 95]))
-            #print(self.Q_dict_list)
+            obj_s_start.append([95, 95])
     
     def convert_to_hexstring(self, cue_s, obj_s_list, angle, power):
-        ''' Converts state-action list to a string with states being in hex format '''
+        cue_s = self.mapper.map_pos_to_1D(cue_s)
+        obj_s_list = [self.mapper.map_pos_to_1D(obj_s) for obj_s in obj_s_list]
+        ''' Converts state-action (1D-converted) list to a string with states being in hex format '''
         if len(obj_s_list) > 0:
             obj_s_list.sort()
             cue_s_hex      = hex(cue_s).lstrip("0x")
@@ -74,35 +75,34 @@ class Q_DICT:
     
     def update_q_dict(self, cue_s, obj_s_list, theta, power, reward):
         '''Updates a q-dict for a specific SA pair'''
-        cue_s = self.mapper.map_pos_to_1D(cue_s)
         current_reward = self.get_q_val(cue_s, obj_s_list, theta, power)
         if current_reward is not None:
             updated_reward = current_reward + reward
         else:
             updated_reward = reward
         SA_string = self.convert_to_hexstring(cue_s, obj_s_list, theta, power)
-        self.Q_dict_list[len(obj_s_list)] = self.Q_dict_pointer
-        self.Q_dict_pointer.update({SA_string: updated_reward})     
+        self.Q_dict_list[len(obj_s_list)].update({SA_string: updated_reward})  
+        #self.Q_dict_pointer.update({SA_string: updated_reward})     
     
     def get_q_val(self, cue_s, obj_s_list, angle, power):
         SA_string = self.convert_to_hexstring(cue_s, obj_s_list, angle, power)
-        self.Q_dict_list[len(obj_s_list)] = self.Q_dict_pointer
-        if SA_string in self.Q_dict_pointer: 
-            current_val = self.Q_dict_pointer[SA_string]
+        #self.Q_dict_list[len(obj_s_list)] = self.Q_dict_pointer
+        if SA_string in self.Q_dict_list[len(obj_s_list)]: 
+            current_val = self.Q_dict_list[len(obj_s_list)][SA_string] #self.Q_dict_pointer[SA_string]
         else:
-            current_val = None
+            current_val = 0.00
         return current_val
     
     def get_max_action_pair(self, cue_s, obj_s_list):
         max_q      = 0.00
-        best_angle = np.random.choice(self.angles)
+        best_angle = np.random.choice(self.thetas)
         best_power = np.random.choice(self.powers)
-        for angle in self.angles:
+        for theta in self.thetas:
             for power in self.powers:
-                q_val = self.get_q_val(cue_s, obj_s_list, angle, power)
+                q_val = self.get_q_val(cue_s, obj_s_list, theta, power)
                 if q_val is not None and q_val > max_q:
                     max_q      = q_val
-                    best_angle = angle
+                    best_angle = theta
                     best_power = power
         return best_angle, best_power, max_q
 
@@ -136,9 +136,9 @@ class MAPPER:
         This method maps a 2D position to a 1D value. 
     '''
     def __init__(self):
-        self.min_x = 95
+        self.min_x = 0
         self.max_x = 1140
-        self.min_y = 95
+        self.min_y = 0
         self.max_y = 618
         self.x = self.build_map()
 
@@ -154,7 +154,6 @@ class MAPPER:
                 row.append(num)
                 num += 1
             row_list.append(row)
-
         return np.array(row_list, np.int32, order='F')
 
     def map_pos_to_1D(self, pos):
