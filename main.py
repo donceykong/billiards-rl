@@ -13,7 +13,7 @@ from billiards_game_computer import BILLIARDS_GAME_COMPUTER
 from billiards_game_human import BILLIARDS_GAME_HUMAN
 
 def Q_learning():
-    q_learning = Q_LEARNING(test=False, display=True, num_epochs=20_000, num_obj_balls = 15)
+    q_learning = Q_LEARNING(test=False, display=True, num_epochs=200_000, num_obj_balls = 15)
     q_learning.begin()
 
 def human_test():
