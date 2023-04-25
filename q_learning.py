@@ -39,6 +39,7 @@ class Q_LEARNING:
         for i in range(16):
             if i < 10: dict_name = f'q_dicts/q_dict_0{i}.pkl'
             else: dict_name = f'q_dicts/q_dict_{i}.pkl'
+
             with open(dict_name, 'wb') as bb:
                 pickle.dump(self.Q.Q_dict_list[i], bb)
                 print(f"-> q-dict_{i} saved successfully to file\n"
@@ -46,6 +47,8 @@ class Q_LEARNING:
                 
     def begin(self):
         self.load_Q_tables()
+        #self.game = BILLIARDS_GAME_COMPUTER(self.display, self.num_obj_balls)
+        #self.game.setup_game()
         if self.test:
             print("\n**Testing Q-Learning (only exploiting best actions)**\n")
             for epoch in tqdm(range(self.num_epochs)):
@@ -66,17 +69,29 @@ class Q_LEARNING:
         obj_s_list = [[250, 267], [250, 304], [250, 341], [250, 378], [250, 415], [287, 285], [287, 322], [287, 359], [287, 396], [324, 303], [324, 340], [324, 377], [361, 321], [361, 358], [398, 339]]
         obj_s_list = obj_s_list[0:num_obj_balls]
         while(self.game.run):
+            print("1) Choosing Actions:")
             # Choose to take a random action or exploit best
             theta, power = self.choose_actions(cue_s, obj_s_list)
+            print(" -> Done with 1.")
             # Take a step in the game
+            print("2) Taking Actions:")
             cue_sp, obj_sp_list, reward = self.take_action(cue_s, obj_s_list, theta, power)
+            print(" -> Done with 2.")
             # Update q-table
+            print("3) Q-Learning:")
             self.q_learn(cue_s, obj_s_list, theta, power, reward, cue_sp, obj_sp_list)
+            print(" -> Done with 3.")
+            print(f"REWARD: {reward}")
             # Set current state to sp
-            obj_s_list = obj_sp_list
             if cue_sp != [0, 0]:
-                cue_s = cue_sp
+                if self.test and reward <= 0.00:
+                    obj_s_list = obj_s_list
+                    cue_s = cue_s
+                else:
+                    obj_s_list = obj_sp_list
+                    cue_s = cue_sp
             else:
+                obj_s_list = obj_s_list
                 cue_s = cue_s
                 # TODO: Need to add something to add cue to a random spot as long as not colliding with others
     
@@ -90,6 +105,7 @@ class Q_LEARNING:
             else:
                 power = np.random.choice(self.powers)
                 theta = np.random.choice(self.thetas)
+        print(f"Angle: {theta}, Power: {power}")
         return theta, power
     
     def take_action(self, cue_s, obj_s_list, theta, power):
