@@ -290,10 +290,10 @@ class BILLIARDS_GAME_COMPUTER:
       # zero if it is close to zero.
       for i, ball in enumerate(self.balls):
         ball_speed = np.linalg.norm(ball.body.velocity[0] - ball.body.velocity[1])
-      #  print(f"ball_speed: {ball_speed}") 
+        print(f"ball_speed: {ball_speed}") 
         # if ball_speed < ___: ball.body.velocity = [0.00, 0.00]
         sum_speed += ball_speed
-      #print(f"sum_speed: {sum_speed}") 
+      print(f"sum_speed: {sum_speed}") 
       if sum_speed > 1e-30:
         has_velocity = True
       else:
