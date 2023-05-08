@@ -75,19 +75,6 @@ class BILLIARDS_GAME_COMPUTER_DQL:
     self.BOTTOM_PANEL = 50
     self.num_obj_balls = num_obj_balls
 
-    powers = [0, 500, 2000, 5000, 8000, 10000, 15000, 20000]
-    thetas = np.linspace(0, 360, 360)
-    self.action_space = []
-    for power in powers:
-      for theta in thetas:
-        action = [power, theta]
-        self.action_space.append(action)
-    print(len(self.action_space))
-
-    self.ACTION_SPACE_SIZE = len(self.action_space)
-    #self.ENVIRONMENT_SHAPE = (1, 17, 2) # I think this should be the actual input shape, no?
-    self.ENVIRONMENT_SHAPE = (20, 10, 1)
-
     #game window
     if self.display == True:
       self.pygame = pygame
@@ -125,9 +112,10 @@ class BILLIARDS_GAME_COMPUTER_DQL:
     self.powering_up = False
     self.potted_balls = []
 
-    for i in range(16-self.num_obj_balls, 17):
-      ball_image = pygame.image.load(f"assets/images/ball_{i}.png").convert_alpha()
-      self.ball_images.append(ball_image)
+    if self.display:
+      for i in range(16-self.num_obj_balls, 17):
+        ball_image = pygame.image.load(f"assets/images/ball_{i}.png").convert_alpha()
+        self.ball_images.append(ball_image)
     
     #create pool table cushions
     self.cushions = [
@@ -257,7 +245,7 @@ class BILLIARDS_GAME_COMPUTER_DQL:
           if ball_dist <= self.pocket_dia / 2:
             if i == len(self.balls) - 1:
               #self.lives -= 1
-              self.run = False
+              #self.run = False
               ball.body.position = (0, 0)
               ball.body.velocity = (0.0, 0.0)
               self.reward -= 100
@@ -290,7 +278,7 @@ class BILLIARDS_GAME_COMPUTER_DQL:
       #  self.reward = -100
       
       #check if all balls are potted
-      if len(self.balls) == 1:# and self.lives != 0:
+      if len(self.potted_balls) == 15:# and self.lives != 0:
         if self.display == True:
           self.draw_text("YOU WIN!", self.large_font, self.WHITE, self.SCREEN_WIDTH / 2 - 160, self.SCREEN_HEIGHT / 2 - 100)
         self.game_running = False
@@ -308,8 +296,8 @@ class BILLIARDS_GAME_COMPUTER_DQL:
         #print(f"ball_speed: {ball_speed}") 
         # if ball_speed < ___: ball.body.velocity = [0.00, 0.00]
         sum_speed += ball_speed
-      #print(f"sum_speed: {sum_speed}") 
-      if sum_speed > 1e-30:
+      print(f"sum_speed: {sum_speed}") 
+      if sum_speed > 1e-10:
         has_velocity = True
       else:
         has_velocity = False
@@ -319,7 +307,7 @@ class BILLIARDS_GAME_COMPUTER_DQL:
         for i, ball in enumerate(self.balls[0:len(self.balls)-1]):
           obj_sp_list.append([int(ball.body.position[0]), int(ball.body.position[1])])
       if self.display == True:
-        self.space.debug_draw(self.draw_options)
+        #self.space.debug_draw(self.draw_options)
         pygame.display.update()
     
     return cue_sp, obj_sp_list, self.reward

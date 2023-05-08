@@ -10,7 +10,13 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+#from keras.utils import plot_model, model_to_dot
+import pydotplus
+from IPython.display import Image
 import random
+import matplotlib.pyplot as plt
+import pydot
+import visualkeras
 
 class DQ_LEARNING:
     def __init__(self, test=True, display=False, num_epochs=10000, num_obj_balls=15):
@@ -21,20 +27,22 @@ class DQ_LEARNING:
         self.gamma = 0.99
         self.eps = 0.02
         self.memory = []
-        self.memory_limit = 50000
-        self.batch_size = 64
+        self.memory_limit = 500
+        self.batch_size = 10
         self.powers = [0, 500, 2000, 5000, 8000, 10000, 15000, 20000]
         self.thetas = np.linspace(0, 359, 719)
         self.num_obj_balls = num_obj_balls
         self.model = self.create_model((1 + num_obj_balls) * 2, len(self.powers) * len(self.thetas))
         self.model_filename = "deep_q_model.h5"
 
-    def create_model(self, input_size, output_size, learning_rate=0.001):
+    def create_model(self, input_size, output_size, l_r=0.001):
         model = Sequential()
         model.add(Dense(64, input_dim=input_size, activation='relu'))
         model.add(Dense(64, activation='relu'))
         model.add(Dense(output_size, activation='linear'))
-        model.compile(loss='mse', optimizer=Adam(lr=learning_rate))
+        model.compile(loss='mse', optimizer=Adam(learning_rate=l_r))
+        visualkeras.layered_view(model, legend=True, to_file='assets/images/DQL_model.png')
+
         return model
 
     def save_model(self, model, filename):
@@ -64,6 +72,7 @@ class DQ_LEARNING:
             return
 
         minibatch = random.sample(memory, batch_size)
+        loss_array = []
         for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
@@ -74,7 +83,10 @@ class DQ_LEARNING:
 
             history = model.fit(np.array([state]), target_f, epochs=1, verbose=0)
             loss_values = history.history["loss"]
-            print(f'Loss values at each epoch: {loss_values}')
+            loss_array.append(loss_values[0])
+        
+        ave_loss = np.average(loss_array)
+        return ave_loss
 
     def begin(self):
         if self.test:
@@ -83,15 +95,18 @@ class DQ_LEARNING:
         else:
             print("\n**Training Deep Q-Learning**\n")
 
+        # Turn on interactive mode for plotting loss
+        plt.ion()
+        episode_list = []
+        ave_loss_list = []
         for episode in tqdm(range(self.num_epochs)):
             self.game = BILLIARDS_GAME_COMPUTER_DQL(self.display, self.num_obj_balls)
             self.game.setup_game()
             cue_s = [888, 339]
             obj_s_list = [[250, 267], [250, 304], [250, 341], [250, 378], [250, 415], [287, 285], [287, 322], [287, 359], [287, 396], [324, 303], [324, 340], [324, 377], [361, 321], [361, 358], [398, 339]]
             state = np.array([cue_s] + obj_s_list).flatten()
-            print(state)
             done = False
-
+            
             while not done:
                 theta, power = self.choose_actions(cue_s, obj_s_list,self.model)
 
@@ -100,7 +115,7 @@ class DQ_LEARNING:
 
                 next_state = np.array([cue_sp] + obj_sp_list).flatten()
                 #action = np.array([theta, power]).flatten()
-                print(f"next_state: {next_state}, action: {theta * len(self.powers) + self.powers.index(power)}")
+                #print(f"next_state: {next_state}, action: {theta * len(self.powers) + self.powers.index(power)}")
 
                 self.remember(state, theta * len(self.powers) + self.powers.index(power), reward, next_state, done)
 
@@ -111,12 +126,21 @@ class DQ_LEARNING:
                     obj_s_list = obj_sp_list
                     cue_s = cue_sp
                     # TODO: Need to add something to add cue to a random spot as long as not colliding with others
+
                 state = np.array([cue_s] + obj_s_list).flatten()
-
-                self.replay(self.model, self.memory, self.batch_size)
-
+                #ave_loss = self.replay(self.model, self.memory, self.batch_size)
+                
                 if done:
-                    print(f"Episode: {episode}, Reward: {reward}")
+                    ave_loss = self.replay(self.model, self.memory, self.batch_size)
+                    print(f"Episode: {episode}, Reward: {reward}, ave_loss: {ave_loss}")
+                    if ave_loss is not None:
+                        episode_list.append(episode)
+                        ave_loss_list.append(ave_loss)
+                        plt.plot(episode_list, ave_loss_list)
+                        plt.draw()
+                        plt.pause(0.1)
+                        plt.ylabel('average loss')
+                        #plt.show()
 
             if (episode + 1) % 10 == 0:
                 self.save_model(self.model, self.model_filename)
@@ -162,7 +186,7 @@ class Q_LEARNING:
                       f"    -> size: {len(self.Q.Q_dict_list[i])}")
                 
     def begin(self):
-        self.load_Q_tables()
+        #self.load_Q_tables()
         #self.game = BILLIARDS_GAME_COMPUTER(self.display, self.num_obj_balls)
         #self.game.setup_game()
         if self.test:
