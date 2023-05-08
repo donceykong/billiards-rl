@@ -65,7 +65,7 @@ class Cue():
       (self.rect.centerx - self.image.get_width() / 2, self.rect.centery - self.image.get_height() / 2)
     )
 
-class BILLIARDS_GAME_COMPUTER:
+class BILLIARDS_GAME_COMPUTER_DQL:
   def __init__(self, display = True, num_obj_balls=15):
     self.run = True
     self.reward = 0.0
@@ -74,7 +74,20 @@ class BILLIARDS_GAME_COMPUTER:
     self.SCREEN_HEIGHT = 678
     self.BOTTOM_PANEL = 50
     self.num_obj_balls = num_obj_balls
-    
+
+    powers = [0, 500, 2000, 5000, 8000, 10000, 15000, 20000]
+    thetas = np.linspace(0, 360, 360)
+    self.action_space = []
+    for power in powers:
+      for theta in thetas:
+        action = [power, theta]
+        self.action_space.append(action)
+    print(len(self.action_space))
+
+    self.ACTION_SPACE_SIZE = len(self.action_space)
+    #self.ENVIRONMENT_SHAPE = (1, 17, 2) # I think this should be the actual input shape, no?
+    self.ENVIRONMENT_SHAPE = (20, 10, 1)
+
     #game window
     if self.display == True:
       self.pygame = pygame
@@ -141,7 +154,7 @@ class BILLIARDS_GAME_COMPUTER:
     img = font.render(text, True, text_col)
     self.screen.blit(img, (x, y))
 
-  # Creates a fictitious object so that the 
+  # Creates a fictitious object so that the PyMunk physics engine will accurately report raytrace of object collision
   def create_aim_boundary(self, pos):
     body = pymunk.Body(body_type = pymunk.Body.STATIC)
     body.position = pos
@@ -211,19 +224,20 @@ class BILLIARDS_GAME_COMPUTER:
       self.power_bar = pygame.Surface((10, 20))
       self.power_bar.fill(self.RED)
 
-  def shoot(self, input_angle, input_power, cue_s, obj_s_list):
+  def step(self, input_angle, input_power, cue_s, obj_s_list):
     self.taking_shot = False
     self.reward = 0.00 # init reward
     has_velocity = True
     cue_angle = input_angle
     self.cue.update(-cue_angle)
+
     self.balls[-1].body.position = cue_s
     for i, ball in enumerate(self.balls[0:len(self.balls)-1]):
       ball.body.position = obj_s_list[i]
-    if self.display == True:
+    if self.display:
       self.cue.rect.center = self.balls[-1].body.position
       self.cue.draw(self.screen)
-    if self.game_running == True:
+    if self.game_running:
       x_impulse = math.cos(math.radians(-cue_angle))
       y_impulse = math.sin(math.radians(-cue_angle))
       self.balls[-1].body.apply_impulse_at_local_point((input_power * -x_impulse, input_power * y_impulse), (0, 0)) 
@@ -243,18 +257,19 @@ class BILLIARDS_GAME_COMPUTER:
           if ball_dist <= self.pocket_dia / 2:
             if i == len(self.balls) - 1:
               #self.lives -= 1
+              self.run = False
               ball.body.position = (0, 0)
               ball.body.velocity = (0.0, 0.0)
-              self.reward += -100
+              self.reward -= 100
             else:
               ball.body.position = (-100, -100)
               ball.body.velocity = (0.0, 0.0)
-              self.space.remove(ball.body)
-              self.balls.remove(ball)
+              #self.space.remove(ball.body)
+              #self.balls.remove(ball)
               self.reward += 100
               if self.display == True:
                 self.potted_balls.append(self.ball_images[i])
-                self.ball_images.pop(i)
+                #self.ball_images.pop(i)
       #draw pool balls
       if self.display == True:
         for i, ball in enumerate(self.balls):
@@ -290,21 +305,21 @@ class BILLIARDS_GAME_COMPUTER:
       # zero if it is close to zero.
       for i, ball in enumerate(self.balls):
         ball_speed = np.linalg.norm(ball.body.velocity[0] - ball.body.velocity[1])
-        print(f"ball_speed: {ball_speed}") 
+        #print(f"ball_speed: {ball_speed}") 
         # if ball_speed < ___: ball.body.velocity = [0.00, 0.00]
         sum_speed += ball_speed
-      print(f"sum_speed: {sum_speed}") 
+      #print(f"sum_speed: {sum_speed}") 
       if sum_speed > 1e-30:
         has_velocity = True
       else:
         has_velocity = False
-        self.reward += -10
+        self.reward += -1    # Still loses value if no object balls pocketed
         cue_sp = [int(self.balls[-1].body.position[0]), int(self.balls[-1].body.position[1])]
         obj_sp_list = []
         for i, ball in enumerate(self.balls[0:len(self.balls)-1]):
           obj_sp_list.append([int(ball.body.position[0]), int(ball.body.position[1])])
       if self.display == True:
-        #self.space.debug_draw(self.draw_options)
+        self.space.debug_draw(self.draw_options)
         pygame.display.update()
-      
+    
     return cue_sp, obj_sp_list, self.reward
