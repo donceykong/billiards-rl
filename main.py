@@ -9,7 +9,7 @@ from q_learning import Q_LEARNING, DQ_LEARNING
 from billiards_game_human import BILLIARDS_GAME_HUMAN
 
 def Q_learning():
-    q_learning = Q_LEARNING(test=False, display=True, num_epochs=200_000, num_obj_balls = 15)
+    q_learning = Q_LEARNING(test=True, display=True, num_epochs=200_000, num_obj_balls = 15)
     q_learning.begin()
 
 def deep_Q_learning():
@@ -23,5 +23,5 @@ def human_test():
 
 if __name__ == "__main__":
     #human_test()
-    #Q_learning()
-    deep_Q_learning()
+    Q_learning()
+    #deep_Q_learning()

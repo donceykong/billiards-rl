@@ -162,7 +162,7 @@ class Q_LEARNING:
                       f"    -> size: {len(self.Q.Q_dict_list[i])}")
                 
     def begin(self):
-        #self.load_Q_tables()
+        self.load_Q_tables()
         #self.game = BILLIARDS_GAME_COMPUTER(self.display, self.num_obj_balls)
         #self.game.setup_game()
         if self.test:
