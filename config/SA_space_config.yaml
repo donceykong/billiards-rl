@@ -1,0 +1,22 @@
+# Config format schema number
+format_version: 1
+
+#############################
+# These are the State-Space Parameters for each ball
+state_params:
+    window_width:  []
+    window_height: []   
+
+#############################
+# Action Space params for each ball
+action_params:
+    theta_min:    0.00
+    theta_max:    360.00
+    #theta_bounds: [${theta_min}, ${theta_max}]
+    theta_disc:   720 # Just twice the size of theta_max - theta_min
+
+    power_min:    0
+    power_max:    20000
+    #power_bounds: [${power_min}, ${power_max}]
+    power_disc:   41
+
